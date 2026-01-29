@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard | Digital Solution</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  background:#020617;
+  color:#e5e7eb;
+  font-family:system-ui;
+}
+nav{
+  padding:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.grid{
+  padding:18px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+}
+.card{
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(18px);
+  border-radius:18px;
+  padding:20px;
+}
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:none;
+}
+button{
+  background:#22d3ee;
+  font-weight:700;
+  cursor:pointer;
+}
+.result{
+  margin-top:12px;
+}
+.result div{
+  padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  font-size:14px;
+}
+.copy{
+  margin-top:10px;
+  background:#38bdf8;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <strong>Digital Solution</strong>
+  <button onclick="logout()">Logout</button>
+</nav>
+
+<div class="grid">
+
+<!-- Aadhaar -->
+<div class="card">
+  <h3>Aadhaar Lookup</h3>
+  <input id="aadhaar" placeholder="Enter Aadhaar Number">
+  <button onclick="lookupAadhaar()">Search</button>
+  <div id="aadhaarRes" class="result"></div>
+  <button class="copy" onclick="copyResult('aadhaarRes')">Copy Result</button>
+</div>
+
+<!-- Number -->
+<div class="card">
+  <h3>Number Lookup</h3>
+  <input id="number" placeholder="Enter Number">
+  <button onclick="lookupNumber()">Search</button>
+  <div id="numberRes" class="result"></div>
+  <button class="copy" onclick="copyResult('numberRes')">Copy Result</button>
+</div>
+
+<!-- Vehicle -->
+<div class="card">
+  <h3>Vehicle Lookup</h3>
+  <input id="vehicle" placeholder="Enter Vehicle Number">
+  <button onclick="lookupVehicle()">Search</button>
+  <div id="vehicleRes" class="result"></div>
+  <button class="copy" onclick="copyResult('vehicleRes')">Copy Result</button>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyB1l3rttd2rHJ7xVR7v6MIy7WnqmBaCLfI",
+  authDomain:"osin-2518a.firebaseapp.com",
+  projectId:"osin-2518a"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+
+/* Protect page */
+onAuthStateChanged(auth,user=>{
+  if(!user) location.href="index.html";
+});
+
+window.logout=()=>{
+  signOut(auth).then(()=>location.href="index.html");
+};
+
+/* Helpers */
+function renderResult(box,data){
+  box.innerHTML="";
+  Object.entries(data).forEach(([k,v])=>{
+    box.innerHTML+=`<div><b>${k}</b>: ${typeof v==="object"?JSON.stringify(v):v}</div>`;
+  });
+}
+
+/* APIs */
+window.lookupAadhaar=()=>{
+  const box=document.getElementById("aadhaarRes");
+  box.textContent="Loading…";
+  fetch(`https://api.b77bf911.workers.dev/aadhaar?id=${aadhaar.value}`)
+    .then(r=>r.json())
+    .then(d=>renderResult(box,d))
+    .catch(()=>box.textContent="Error");
+};
+
+window.lookupNumber=()=>{
+  const box=document.getElementById("numberRes");
+  box.textContent="Loading…";
+  fetch(`https://source-code-api.vercel.app/?num=${number.value}`)
+    .then(r=>r.json())
+    .then(d=>renderResult(box,d))
+    .catch(()=>box.textContent="Error");
+};
+
+window.lookupVehicle=()=>{
+  const box=document.getElementById("vehicleRes");
+  box.textContent="Loading…";
+  fetch(`https://vehicle-infoo.vercel.app/?rc_number=${vehicle.value}`)
+    .then(r=>r.json())
+    .then(d=>renderResult(box,d))
+    .catch(()=>box.textContent="Error");
+};
+
+/* Copy */
+window.copyResult=(id)=>{
+  navigator.clipboard.writeText(document.getElementById(id).innerText);
+  alert("Copied ✅");
+};
+</script>
+
+</body>
+</html>
